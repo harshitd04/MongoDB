@@ -1,0 +1,257 @@
+mongoexport --uri="mongodb+srv://harshit:dabas%402004@sandbox.z8lvh.mongodb.net/import_export_db" --collection=import_export_coll1 --out=import_export_coll1.json
+
+
+
+
+mongoimport --uri="" --collection= --file=
+
+
+mongoimport --uri="mongodb+srv://harshit:dabas%402004@sandbox.z8lvh.mongodb.net/import_export_db" --collection=import_export_coll1 --file=import_export_coll1.json
+
+
+mongodump --uri="mongodb+srv://harshit:dabas%402004@sandbox.z8lvh.mongodb.net/import_export_db"
+
+mongorestore --uri="mongodb+srv://harshit:dabas%402004@sandbox.z8lvh.mongodb.net/import_export_db" dump/import_export_db
+
+
+
+to create collection in shell / cmd:
+db.createCollection('name',options)
+
+to drop a collection :
+db.collectionname.drop()
+
+
+to drop database:
+db.dropDatabase()		#Insure you are using that database currently.
+
+
+
+# findOne: Returns one document from the collection that you specify:
+
+
+db.collection.findOne(query,projection)				#query and projection are optional.
+
+
+
+#find: same as findOne except it returns a cursor to the selected documents and can show you all documents in the collection
+db.collection.find(query,projection)
+
+shows 20 docs
+type "it" for next 20 documents. it-> Iterate
+
+db.grades.find({"student_id":4})
+db.grades.find({"student_id":1,"class_id":270})
+
+
+
+{field:{operator:value}}
+
+$lt  is: less than >
+Eg : {"salary":{$lt:50000}}
+
+$gt is: greater than < 
+
+$eq  is: equal to  = 
+
+$ne  is: !=
+
+$lte is: less than equal to   >=
+
+$gte is: greater than equal to   <=
+
+
+$in  is : in
+Eg: {"salary":{$in:[50000,100000]}}
+
+$nin is: not in
+
+
+
+$and : Returns all documents that match all conditions
+{operator:[{condition1},{condition2},..]}
+
+$or
+
+$nor:Returns all documents that fail all of the conditions
+
+$not
+{$not:{condition}}
+
+
+
+{$and:[{"tripduration":{$gt:400}},{"birth year":{$gte:1988}}]}
+{"tripduration":{$gt:300,$lt:400}}
+ 
+db.trips.find({$or:[{"birth year":{$lt:1950}},{"tripduration":{$gt:4000}}]})
+
+db.trips.find({"usertype":{$not:{$eq:"Subscriber"}}})
+db.trips.find({"usertype":{$ne:"Subscriber"}})
+
+db.inspections.find({"result":{$in:["Unable to Locate","Violation Issued"]}})
+
+db.inspections.find({$or:[{"result":"Unable to Locate"},{"result":"Violation Issued"}]})
+
+{"number_of_employees":{$lte:100},"founded_year":{$eq:2009}}
+{"number_of_employees":{$lte:100},"founded_year":2009}
+
+{$and:[{"number_of_employees":{$lte:200}},{"number_of_employees":{$gt:100}}]}
+{"number_of_employees":{$lte:200,$gt:100}}
+
+
+
+usual formula:
+{field:{operator:value}}
+db.trips.find({"tripduration":{$gte:400}})------11
+
+
+$expr formula:    Most useful when comparing the values of two fields in the same document.
+
+{$expr:{operator:[field:value]}}
+db.trips.find({$expr:{$gte:["$tripduration",400]}})--------Not provides much value when used in 11
+
+sample_training> db.routes.find({$expr:{$eq:["$airplane","CR2"]}})  ====  db.routes.find({"airplane":{$eq:"CR2"}})
+
+
+But is useful in :
+
+db.routes.find({$expr:{$eq:["$src_airport","$dst_airport"]}})
+
+
+
+Element Operator:
+$exists : returns documents that contain a specific field 
+db.collection.find({field:{$exists:<boolean>}})
+
+{"ipo":{$exists:true}}
+{"ipo":{$exists:true},"funding_rounds":{$exists:false}}
+{"ipo":{$exists:true},"funding_rounds":{$exists:true}}
+
+
+$type  :  returns fields where the values are of a specific data type in a field.
+db.collection.find({fid:{$type:BSON}})
+db.collection.find({fid:{$type:[<BSON type 1>,<BSON type 2>]}})
+
+{"homepage_url":{$type:2}}					#IT has corresponding numbers for string double etc
+
+{"homepage_url":{$type:2},"founded_year":{$type:10}}
+
+
+
+Cursor Methods
+
+Count: returns the number of documents in the result set.
+db.collection.find({query}).count()					db.trips.find().count()
+									db.trips.find({"tripduration":{$gte:300}}).count()
+									db.trips.find({"tripduration":{$gt:300,$lt:400}}).count()
+									
+
+
+sort: returns the docs and orders them based on specified fields.	db.trips.find({"tripduration":{$gt:300,$lt:400}}).sort({"tripduration":-1})
+									db.trips.find().sort({"start station name":1, "tripduration":-1})
+
+db.collection.find({query}).sort(({parameters})			-1 for descending , 1 for ascending
+db.trips.find().sort({"start station name":-1})
+
+
+limit: limits the number of docs that are returned			db.trips.find().limit(5)
+db.collection.find({query}).limit(number)
+
+
+skip:skips the first x number of docs
+db.collection.find({query}).skip(number)
+
+
+size: it isi like count in that it returns a count of docs , however it should be used when you have applied skip or limit to your record.
+
+
+Projection:  a parameter in find function
+db.companies.find({},{"name":1,"founded_year":1})		#1 to display the fields 
+db.companies.find({},{"name":1,"founded_year":1,_id:0})		#0 to not display the fields
+
+
+db.companies.find({$or:[{"start station name":{$type:10}},{"end station name":{$type:10}}]})
+db.companies.find({},{"number_of_employees":1,"name":1}).sort({"number_of_employees":-1}).limit(10) db.companies.find({},{"number_of_employees":1,"name":1}).sort({"number_of_employees":1}) 
+
+sample_training> db.companies.find({"number_of_employees":{$gt:100000}},{"name":1})
+db.companies.find({"number_of_employees":{$gt:100000}}).count()
+
+
+
+db.companies.find({"number_of_employees":{$gt:100000}},{"name":1})
+db.companies.find({"number_of_employees":{$gt:100000}}).count()  
+
+
+Embedded docs
+db.inspections.find({"address.zip":11385})
+
+
+embedded arrays
+db.posts.find({"tags":"roof"},{"tags":1})
+
+
+$all		#order doesn't matter
+db.collection.find{field:$all:[value1,value2.....]}}db.posts.find({"tags":{$all:["textbook","bus"]}},{"tags":1})
+
+
+$size
+returns all docs that match the specified array sizedb.posts.find({"tags":{$size:10}}).count()
+
+
+db.grades.find({"scores.type":"exam"})
+
+$elemMatch
+Matches docs that contain an array field with an element that contains the matching criteria
+db.collection.find({field:{$elemMatch:{{query1},{query2},....}})
+db.grades.find({"scores":{$elemMatch:{"type":"exam","score":{$gt:80}}}})
+
+
+sample_training> db.routes.find({"airline.id":410})
+
+db.companies.find({"products":{$elemMatch:{"name":"Jobster"}}},{"products":1})
+
+
+INSERT
+db.collection.insert(
+<docs>,
+{writeConcern:<doc>,ordered:<Boolean>}
+)
+
+deleteOne		First doc that matches the condition is deleted
+db.collection.deleteOne(
+<filter>,
+{writeConcern:<doc>,
+collation:<doc>,
+hint:<doc>
+}
+)
+db.testCollection.deleteOne({"name":"Harshit"})
+
+
+deleteMany			All docs that match the condition are deleted 
+db.collection.deleteMany(
+<filter>,
+{writeConcern:<doc>,
+collation:<doc>,
+hint:<doc>
+}
+)
+
+
+
+UpdateOne
+db.collection.updateOne({filter},{update},{options})
+db.people.updateOne({"profession":"cook"},{$set:{"profession":"chef"}})
+db.people.updateOne({"name":"Jess Raymond"},{$set:{"hobbies_list":["cleaning","gaming"]}})
+db.people.updateOne({"name":"Jess Raymond"},{$set:{"profession":"architect","age":30}})
+
+UpdateMany
+db.collection.updateMany({filter},{update},{options})
+sample_training> db.people.updateMany({"profession":"chef"},{$set:{"profession":"cook"}})
+
+
+$set	
+replaces existing filed value with the one you specify, creates if the field does not exist
+db.collection.updateOne({filter},{$set:{field:value,...},{options})
+db.people.updateMany({},{$set:{"new_field":1}})
+
